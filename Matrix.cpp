@@ -59,7 +59,6 @@ void Matrix::printMatrix()
 }
 std::vector<int> Matrix::getTransformation(std::vector<int> vector)
 {
-
 	int ind1 = rand() % (vector.size()-1)+1;
 	int ind2 = rand() % (vector.size()-1)+1;
 	while (ind1 == ind2)
@@ -75,11 +74,10 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 	minimumRoute = cycle;
 	const int tempLength = cycle.size()*(cycle.size() - 1) / 2;
 	double temperature=tempStart;
-	int lastChange = 0;
 	this->minSolution = distance(cycle);
 	timer.start();
 
-	while (timer.stop() < stoptime /*&& lastChange<1000 */&& temperature>tempMin)
+	while (timer.stop() < stoptime /*&& temperature>tempMin*/)
 	{
 		std::cout <<"czas: "<< timer.stop() << std::endl;
 		for (int i = 0; i < tempLength; i++)
@@ -91,19 +89,16 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 			if (tmpDistanceNeighbour - tmpDistance <= 0 || tmpDistanceNeighbour - tmpDistance > 0 && (double)rand() / RAND_MAX < exp(-(tmpDistanceNeighbour - tmpDistance) / temperature))
 			{
 				cycle = cycleNeighbour;
-				lastChange = 0;
 				//cout << "wyliczona trasa: " << tmpDistanceNeighbour <<", a minimum= "<<minSolution<< endl;
 				if (tmpDistanceNeighbour < minSolution)
 				{
+					found = timer.stop();
 					minimumRoute = cycle;
 					minSolution = tmpDistanceNeighbour;
 				}
 			}
-			lastChange++;
-			//if (lastChange >= 1000)
-			{
-			//	break;
-			}
+		
+			
 		}
 		temperature *= a;
 	}
@@ -132,20 +127,11 @@ std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 	cout << "Temperatura: " << temp << endl;
 	timer.reset();
 	timer.start();
-	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.0001, time , a);
+	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.000001, time , a);
 	timer.stop();
-	this->minimumRoute.push_back(minimumRoute[0]);
+	//this->minimumRoute.push_back(0);
+	//minSolution = distance(minimumRoute);
 	return minimumRoute;
-}
-int Matrix::getValue(int * route)
-{
-	int sum = 0;
-	for (int i = 0; i < vertex - 1; i++)
-	{
-		sum += data[route[i]][route[i + 1]];
-	}
-	sum += data[route[vertex - 1]][route[0]];
-	return sum;
 }
 
 double Matrix::calcTemperature(int size)
@@ -182,33 +168,91 @@ std::vector<int> Matrix::initTS(double time, Timer & timer, int type)
 	timer.start();
 	tabuSearch(route, this->minimumRoute,time,type);
 	timer.stop();
+	//this->minimumRoute.push_back(0);
+	//minSolution=distance(minimumRoute);
 	return minimumRoute;
 }
 
 void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, float stoptime, int type)
 {
 	Timer timer;
-	minimumRoute = cycle;
-	int lastChange = 0;
-	const int tempLength = cycle.size()*(cycle.size() - 1) / 2;
-	this->minSolution = distance(cycle);
+	int tabuListSize = vertex * 3;
+	int iterationThreshold = tabuListSize * 3;
+
+	std::vector<int> s0 = getTransformation(cycle);
+	std::vector<int> sBest = s0;
+	std::vector<int> bestCandidate = s0;
+
+	std::vector<int> sCandidate;
+	std::vector<int> moveToCandidate;
+
+	std::vector<std::vector<int>> sNeighbourhood;
+	std::vector<std::vector<int>> tabuList;
+	std::vector<int> moveToBePutOnTabuList;
 	timer.start();
 
 	while (timer.stop() < stoptime)
 	{
-		cout << "czas: "<<timer.stop() << endl;
-		for (int i = 0; i < tempLength; i++)
+		bool noAcceptedCandidates = true;
+		std::cout << "Timer: " << timer.stop() << endl;
+		sNeighbourhood = getNeighbourhood(bestCandidate);
+		for (int i = 0; i < sNeighbourhood.size(); i++)
 		{
-			vector<int> cycleNeighbour = this->setNeighboorType(cycle, type);
-			int tmpDistance = distance(cycle);
-			int tmpDistanceNeighbour = distance(cycleNeighbour);
-			if (tmpDistanceNeighbour - tmpDistance > 0)
+			sCandidate = sNeighbourhood.at(i);
+			moveToCandidate = moves.at(i);
+
+			if (std::find(tabuList.begin(), tabuList.end(), moveToCandidate) != tabuList.end())
 			{
-				this->minimumRoute = cycleNeighbour;
-				minSolution = tmpDistanceNeighbour;
+				if (distance(sCandidate) < distance(sBest))
+				{
+					bestCandidate = sCandidate;
+					moveToBePutOnTabuList = moveToCandidate;
+					noAcceptedCandidates = false;
+				}
+			}
+			else
+			{
+				if (distance(sCandidate)< distance(bestCandidate))
+				{
+					noAcceptedCandidates = false;
+					bestCandidate = sCandidate;
+					moveToBePutOnTabuList = moveToCandidate;
+				}
 			}
 		}
+
+		if (noAcceptedCandidates) {
+			iterationThreshold--;
+		}
+
+		if (iterationThreshold <= 0)
+		{
+			moves.clear();
+			tabuList.clear();
+			sNeighbourhood.clear();
+			iterationThreshold = tabuListSize * 3;
+			bestCandidate=getTransformation(cycle);
+			//bestCandidate = setNeighboorType(bestCandidate, type); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		}
+		else
+		{
+			if (distance(bestCandidate) < distance(sBest))
+			{
+				sBest = bestCandidate;
+				found = timer.stop();
+			}
+
+			tabuList.push_back(moveToBePutOnTabuList);
+			if (tabuList.size() > tabuListSize) 
+				tabuList.erase(tabuList.begin());
+
+			
+		}
+
+		moves.clear();
 	}
+	minimumRoute = sBest;
+
 }
 
 void Matrix::resetAtributes()
@@ -216,13 +260,16 @@ void Matrix::resetAtributes()
 	minSolution = INT_MAX;
 	for (int i = 0; i < vertex; i++)
 		minimumRoute[i] = 0;
+	found = 0;
 }
 
 void Matrix::printRoute(std::vector<int> route)
 {
 	for (int i = 0; i < vertex; i++)
 		std::cout << route[i] << "->";
-	std::cout << route[vertex];
+	cout << "0" << endl;
+	cout << endl;
+	std::cout <<"Wielkosc: "<< route.size();
 }
 
 std::vector<int> Matrix::setNeighboorType(std::vector<int> route, int type)
@@ -257,3 +304,86 @@ std::vector<int> Matrix::setNeighboorType(std::vector<int> route, int type)
 	}
 	return route;
 }
+
+std::vector<int> Matrix::getInitialSolution()
+{
+	int startNode = 0;
+	
+	std::vector<int> initialSolution;
+	initialSolution.push_back(startNode);
+	for (int i = 0; i < vertex - 1; i++)
+	{
+		int bestNeighbourIndex = -1;
+		int bestNeighbourCost = INT_MAX;
+
+		for (int i = 0; i < vertex; i++)
+		{
+			if (i != startNode && data[startNode][i] < bestNeighbourCost &&
+				std::find(initialSolution.begin(), initialSolution.end(), i) == initialSolution.end())
+			{
+				bestNeighbourIndex = i;
+				bestNeighbourCost = data[startNode][i];
+			}
+		}
+		initialSolution.push_back(bestNeighbourIndex);
+		startNode = bestNeighbourIndex;
+	}
+
+	//for (int i = 0; i < vertex; i++) 
+		//initialSolution.at(i) += 1;
+
+	return initialSolution;
+}
+
+std::vector<int> Matrix::getRandomPermutationTabu()
+{
+	std::vector<int> randomPermutation;
+	for (int i = 0; i < vertex; ++i) 
+		randomPermutation.push_back(i);
+	std::random_shuffle(randomPermutation.begin(), randomPermutation.end());
+
+	//for (int i = 0; i < vertex; i++) 
+		//randomPermutation.at(i) += 1;
+	return randomPermutation;
+}
+
+std::vector<std::vector<int>> Matrix::getNeighbourhood(std::vector<int> currentPermutation)
+{
+	std::vector<std::vector<int>> neighbourhood;
+	for (int i = 0 ; i < vertex - 1; i++)
+	{
+		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++)
+		{
+			std::vector<int> move;
+			move.push_back(i);
+			move.push_back(currentSwap);
+
+			std::vector<int> nextNeighbour = currentPermutation;
+			std::swap(nextNeighbour.at(i), nextNeighbour.at(currentSwap));
+
+			neighbourhood.push_back(nextNeighbour);
+			moves.push_back(move);
+		}
+	}
+
+	return neighbourhood;
+}
+
+int Matrix::pathCostTabu(std::vector<int> permutation)
+{
+	int totalCost = 0;
+	int startingCityIndex = permutation.at(0);
+	int lastCityIndex = permutation.at(permutation.size() - 1);
+
+	for (int i = 0; i < permutation.size() -1; i++)
+	{
+		int currentCity = permutation.at(i);
+		int nextOnRoute = permutation.at(i + 1);
+
+		totalCost += data[currentCity][nextOnRoute];
+	}
+	totalCost += data[lastCityIndex][startingCityIndex];
+
+	return totalCost;
+}
+
