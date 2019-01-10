@@ -89,7 +89,6 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 			if (tmpDistanceNeighbour - tmpDistance <= 0 || tmpDistanceNeighbour - tmpDistance > 0 && (double)rand() / RAND_MAX < exp(-(tmpDistanceNeighbour - tmpDistance) / temperature))
 			{
 				cycle = cycleNeighbour;
-				//cout << "wyliczona trasa: " << tmpDistanceNeighbour <<", a minimum= "<<minSolution<< endl;
 				if (tmpDistanceNeighbour < minSolution)
 				{
 					found = timer.stop();
@@ -97,8 +96,6 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 					minSolution = tmpDistanceNeighbour;
 				}
 			}
-		
-			
 		}
 		temperature *= a;
 	}
@@ -129,8 +126,6 @@ std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 	timer.start();
 	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.000001, time , a);
 	timer.stop();
-	//this->minimumRoute.push_back(0);
-	//minSolution = distance(minimumRoute);
 	return minimumRoute;
 }
 
@@ -168,8 +163,7 @@ std::vector<int> Matrix::initTS(double time, Timer & timer, int type)
 	timer.start();
 	tabuSearch(route, this->minimumRoute,time,type);
 	timer.stop();
-	//this->minimumRoute.push_back(0);
-	//minSolution=distance(minimumRoute);
+	minimumRoute.at(0) = 0;
 	return minimumRoute;
 }
 
@@ -232,7 +226,7 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 			sNeighbourhood.clear();
 			iterationThreshold = tabuListSize * 3;
 			bestCandidate=getTransformation(cycle);
-			//bestCandidate = setNeighboorType(bestCandidate, type); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//bestCandidate = setNeighboorType(bestCandidate, type);
 		}
 		else
 		{
