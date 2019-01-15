@@ -184,7 +184,7 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 	std::vector<std::vector<int>> tabuList;
 	std::vector<int> moveToBePutOnTabuList;
 	timer.start();
-
+	
 	while (timer.stop() < stoptime)
 	{
 		bool noAcceptedCandidates = true;
@@ -239,14 +239,13 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 			tabuList.push_back(moveToBePutOnTabuList);
 			if (tabuList.size() > tabuListSize) 
 				tabuList.erase(tabuList.begin());
-
-			
 		}
 
 		moves.clear();
 	}
 	minimumRoute = sBest;
-
+	
+	
 }
 
 void Matrix::resetAtributes()
@@ -344,9 +343,9 @@ std::vector<int> Matrix::getRandomPermutationTabu()
 std::vector<std::vector<int>> Matrix::getNeighbourhood(std::vector<int> currentPermutation)
 {
 	std::vector<std::vector<int>> neighbourhood;
-	for (int i = 0 ; i < vertex - 1; i++)
+	for (int i = 1 ; i < vertex - 2; i++) //0;vertex-1;
 	{
-		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++)
+		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++) 
 		{
 			std::vector<int> move;
 			move.push_back(i);
@@ -381,3 +380,195 @@ int Matrix::pathCostTabu(std::vector<int> permutation)
 	return totalCost;
 }
 
+std::vector<int> Matrix::initGeneticAlgorithm(int populationSize, int generations, double crossingProbability, double mutationProbability, double stopTime, Timer & counter)
+{
+	std::vector<int> minCycle(populationSize);
+	counter.start();
+	minCycle = geneticAlgorithm(populationSize, generations, crossingProbability, mutationProbability, stopTime);
+	counter.stop();
+	minimumRoute = minCycle;
+	return minimumRoute;
+}
+
+std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, double crossingProbability, double mutationProbability, double stopTime)
+{
+	//generation number indicatior
+	int generation = 0;
+
+	//timer to count time of algorithm
+	Timer timer;
+	timer.start();
+
+	//calculate size of population vector
+	int sizeVec = 0;
+	//if (selectionMethod == TOP)
+	//{
+		//sizeVec = populationSize + populationSize / 2 + populationSize / 4;
+	//}
+	//else if (selectionMethod == PROBABILITY)
+	//{
+		sizeVec = populationSize;
+	//}
+
+	//init and fill population
+	std::vector<std::vector<int>> population(sizeVec);
+	for (int i = 0; i < populationSize; i++)
+	{
+		population[i] = randomRoute();
+	}
+
+	//set minCycle
+	std::vector<int> minCycle = population[0];
+
+	//sort population by cycle distance 
+	//std::sort has nlog(n) complexity
+	std::sort(population.begin(), population.begin() + populationSize, [&](std::vector<int> vec1, std::vector<int> vec2) {
+		return (distance(vec1) < distance(vec2));
+	});
+
+	//repeat 'generations' times or finish after stopTime
+	while (timer.stop() < stopTime && generation < generations)
+	{
+		std::cout << "Timer: " << timer.stop() << endl;
+		//if (selectionMethod == PROBABILITY)
+		{
+			//every cycle in population has some probability to cross and some to mutate
+			for (int i = 0; i < populationSize; i++)
+			{
+				//get random probability from [0;1] range
+				const int probability = (double)rand() / INT_MAX;
+
+				//if probability is in [0;crossingProbability] range then cross this parent
+				if (probability < crossingProbability)
+				{
+					//random second parent
+					int parent = rand() % populationSize;
+					while (parent == i)
+					{
+						parent = rand() % populationSize;
+					}
+
+					//cross and add child to population
+					//todo - add switching methods of crossing if more than 1
+					population.push_back(crossingHalfes(population[i], population[parent]));
+				}
+
+				//if probability is in [0;mutateProbability] range then mutate this cycle
+				if (probability < crossingProbability)
+				{
+					//mutate and add child to population
+					//mutate up to ~0 - 10% of vertices (5% might be swaped with another 5% so 10% will change place)
+					//todo - add switching methods of mutation if more than 1
+					population.push_back(mutationRandom(population[i], population[i].size()*0.05));
+				}
+			}
+		}
+		/*
+		else if (selectionMethod == TOP)
+		{
+
+			//top 50% of population will be crossed with each other (randomly chosen one of parents)
+			for (int i = 0; i < populationSize / 2; i++)
+			{
+				//rand indexes to cross
+				int idx1 = i;
+				int idx2 = rand() % populationSize / 2;
+
+				while (idx1 == idx2)
+				{
+					idx2 = rand() % populationSize / 2;
+				}
+
+				//cross parents
+				population[populationSize + i] = crossingHalfes(population[idx1], population[idx2]);
+			}
+
+			//top 25% of population will be mutated
+			for (int i = 0; i < populationSize / 4; i++)
+			{
+				//mutate up to ~0 - 10% of vertices (5% might be swaped with another 5% so 10% will change place)
+				//todo - add switching methods of mutation if more than 1
+				population[populationSize + populationSize / 2 + i] = mutationRandom(population[i], population[i].size()*0.05);
+			}
+		}*/
+
+		//sort again but this time whole population vector
+		//( in TOP selection method ! ) so better results from mutation and crossing will move to first (100%) part of population 
+		//and will be considered in further generations during mutations and crossing
+		//therefore the worst results will move from first part to next and will be totaly replaced in next generation
+		std::sort(population.begin(), population.end(), [&](std::vector<int> vec1, std::vector<int> vec2) {
+			return (distance(vec1) < distance(vec2));
+		});
+
+		//if (selectionMethod == PROBABILITY) 
+		population.resize(populationSize);
+
+		//if the best known cycle is worse then swap
+		if (distance(minCycle) > distance(population[0]))
+		{
+			minCycle = population[0];
+		}
+		//go to next generation
+		generation++;
+	}
+
+	return minCycle;
+}
+
+std::vector<int> Matrix::crossingHalfes(std::vector<int> parent1, std::vector<int> parent2)
+{
+	//child of parents will be:
+	// -first half of vertices in cycle will be the same as first half of parent1's
+	// -second half of child's vertices will be filled in the same order of missing vertices as in parent2
+
+	int inserted = parent1.size() / 2;
+	bool found = false;
+
+	//copy first half from parent1
+	std::vector<int> child(parent1.size(), -1);
+	for (int i = 0; i < child.size() / 2; i++)
+	{
+		child[i] = parent1[i];
+	}
+
+	//add elements from parent2 to child
+	for (int element : parent2)
+	{
+		found = false;
+		//check if element exist in child
+		for (int i = 0; i < inserted; i++)
+		{
+			if (element == child[i])
+			{
+				found = true;
+				break;
+			}
+		}
+
+		//if not insert element
+		if (!found)
+		{
+			child[inserted++] = element;
+		}
+	}
+
+	return child;
+}
+std::vector<int> Matrix::mutationRandom(std::vector<int> parent, int levelsOfMutation)
+{
+	for (int i = 0; i < levelsOfMutation; i++)
+	{
+		//rand elements
+		int idx1 = rand() % (parent.size()- 1 ) + 1 ;
+		int idx2 = rand() % (parent.size() - 1) + 1;
+
+		while (idx1 == idx2)
+		{
+			idx2 = rand() % (parent.size() - 1) + 1;
+		}
+
+		std::swap(parent[idx1], parent[idx2]);
+	}
+
+	return parent;
+}

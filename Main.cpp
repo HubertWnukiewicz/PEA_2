@@ -137,16 +137,14 @@ void Opcja1()
 int main()
 {
 	srand(time(nullptr));
-	
-	//Matrix matrix1, matrix3, matrix2;
+	Timer timer;
+	//PEA 2
 	matrix.ReadFromFile("ftv47.atsp"); //120
-	//matrix2.ReadFromFile("ftv170.atsp");  //240
-	//matrix3.ReadFromFile("rbg403.atsp"); //360
-	
-	Mainmenu();
-		
-		
-	
-
+	//Mainmenu();
+	vector<int> w2;
+	w2=matrix.initGeneticAlgorithm(50000, 200, 0.8, 0.01, 30, timer);
+	int value = matrix.distance(w2);
+	matrix.printRoute(w2);
+	cout << "Wartosc " << value << endl;
 	cin.ignore(2);
 }

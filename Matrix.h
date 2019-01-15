@@ -30,12 +30,14 @@ public:
 	void resetAtributes();
 	void printRoute(std::vector<int> route);
 	std::vector<int> setNeighboorType(std::vector<int> route, int type);
-
-
-	
 	std::vector<int> getInitialSolution();
 	std::vector<int> getRandomPermutationTabu();
 	std::vector<std::vector<int>> getNeighbourhood(std::vector<int> currentPermutation );
 	int pathCostTabu(std::vector<int> permutation);
+
+	std::vector<int>initGeneticAlgorithm(int populationSize, int generations, double crossingProbability, double mutationProbability, double stopTime, Timer& counter); //SelectionMethod selectionMethod
+	std::vector<int> geneticAlgorithm(int populationSize, int generations, double crossingProbability, double mutationProbability, double stopTime); // SelectionMethod selectionMethod
+	std::vector<int> crossingHalfes(std::vector<int> parent1, std::vector<int> parent2);
+	std::vector<int> mutationRandom(std::vector<int> parent, int levelsOfMutation);
 
 };
