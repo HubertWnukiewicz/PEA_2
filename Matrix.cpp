@@ -59,10 +59,10 @@ void Matrix::printMatrix()
 }
 std::vector<int> Matrix::getTransformation(std::vector<int> vector)
 {
-	int ind1 = rand() % (vector.size()-1)+1;
-	int ind2 = rand() % (vector.size()-1)+1;
+	int ind1 = rand() % (vector.size() - 1) + 1;
+	int ind2 = rand() % (vector.size() - 1) + 1;
 	while (ind1 == ind2)
-		ind2 = rand() % (vector.size()-1)+1;
+		ind2 = rand() % (vector.size() - 1) + 1;
 	//SWAP
 	//cout << "ind1= " << ind1 << " ,ind2= " << ind2 << endl; 4289
 	std::swap(vector[ind1], vector[ind2]);
@@ -73,13 +73,13 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 	Timer timer;
 	minimumRoute = cycle;
 	const int tempLength = cycle.size()*(cycle.size() - 1) / 2;
-	double temperature=tempStart;
+	double temperature = tempStart;
 	this->minSolution = distance(cycle);
 	timer.start();
 
 	while (timer.stop() < stoptime /*&& temperature>tempMin*/)
 	{
-		std::cout <<"czas: "<< timer.stop() << std::endl;
+		std::cout << "czas: " << timer.stop() << std::endl;
 		for (int i = 0; i < tempLength; i++)
 		{
 			vector<int> cycleNeighbour = getTransformation(cycle);
@@ -99,7 +99,7 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 		}
 		temperature *= a;
 	}
-	
+
 }
 int Matrix::distance(std::vector<int> vector)
 {
@@ -116,7 +116,7 @@ int Matrix::distance(std::vector<int> vector)
 std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 {
 	std::vector<int> cycle(vertex, 0);
-	for (int i = 0; i <vertex ; i++)
+	for (int i = 0; i < vertex; i++)
 	{
 		cycle[i] = i;
 	}
@@ -124,15 +124,15 @@ std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 	cout << "Temperatura: " << temp << endl;
 	timer.reset();
 	timer.start();
-	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.000001, time , a);
+	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.000001, time, a);
 	timer.stop();
 	return minimumRoute;
 }
 
 double Matrix::calcTemperature(int size)
 {
-	double temp=0.0;
-	std:vector<int> route = randomRoute();
+	double temp = 0.0;
+std:vector<int> route = randomRoute();
 	for (int i = 0; i < size; i++)
 	{
 		temp += abs(distance(route) - distance(getTransformation(route)));
@@ -148,7 +148,7 @@ std::vector<int> Matrix::randomRoute()
 	for (int i = 0; i < vertex; i++)
 		route[i] = i;
 	for (int i = 1; i < vertex; i++)
-		std::swap(route[i], route[rand() % (vertex-1)+1]);
+		std::swap(route[i], route[rand() % (vertex - 1) + 1]);
 	return route;
 }
 
@@ -161,7 +161,7 @@ std::vector<int> Matrix::initTS(double time, Timer & timer, int type)
 	}
 	timer.reset();
 	timer.start();
-	tabuSearch(route, this->minimumRoute,time,type);
+	tabuSearch(route, this->minimumRoute, time, type);
 	timer.stop();
 	minimumRoute.at(0) = 0;
 	return minimumRoute;
@@ -184,7 +184,7 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 	std::vector<std::vector<int>> tabuList;
 	std::vector<int> moveToBePutOnTabuList;
 	timer.start();
-	
+
 	while (timer.stop() < stoptime)
 	{
 		bool noAcceptedCandidates = true;
@@ -206,7 +206,7 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 			}
 			else
 			{
-				if (distance(sCandidate)< distance(bestCandidate))
+				if (distance(sCandidate) < distance(bestCandidate))
 				{
 					noAcceptedCandidates = false;
 					bestCandidate = sCandidate;
@@ -225,7 +225,7 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 			tabuList.clear();
 			sNeighbourhood.clear();
 			iterationThreshold = tabuListSize * 3;
-			bestCandidate=getTransformation(cycle);
+			bestCandidate = getTransformation(cycle);
 			//bestCandidate = setNeighboorType(bestCandidate, type);
 		}
 		else
@@ -237,15 +237,15 @@ void Matrix::tabuSearch(std::vector<int> cycle, std::vector<int>& minimumRoute, 
 			}
 
 			tabuList.push_back(moveToBePutOnTabuList);
-			if (tabuList.size() > tabuListSize) 
+			if (tabuList.size() > tabuListSize)
 				tabuList.erase(tabuList.begin());
 		}
 
 		moves.clear();
 	}
 	minimumRoute = sBest;
-	
-	
+
+
 }
 
 void Matrix::resetAtributes()
@@ -262,7 +262,7 @@ void Matrix::printRoute(std::vector<int> route)
 		std::cout << route[i] << "->";
 	cout << "0" << endl;
 	cout << endl;
-	std::cout <<"Wielkosc: "<< route.size();
+	
 }
 
 std::vector<int> Matrix::setNeighboorType(std::vector<int> route, int type)
@@ -301,7 +301,7 @@ std::vector<int> Matrix::setNeighboorType(std::vector<int> route, int type)
 std::vector<int> Matrix::getInitialSolution()
 {
 	int startNode = 0;
-	
+
 	std::vector<int> initialSolution;
 	initialSolution.push_back(startNode);
 	for (int i = 0; i < vertex - 1; i++)
@@ -331,7 +331,7 @@ std::vector<int> Matrix::getInitialSolution()
 std::vector<int> Matrix::getRandomPermutationTabu()
 {
 	std::vector<int> randomPermutation;
-	for (int i = 0; i < vertex; ++i) 
+	for (int i = 0; i < vertex; ++i)
 		randomPermutation.push_back(i);
 	std::random_shuffle(randomPermutation.begin(), randomPermutation.end());
 
@@ -343,9 +343,9 @@ std::vector<int> Matrix::getRandomPermutationTabu()
 std::vector<std::vector<int>> Matrix::getNeighbourhood(std::vector<int> currentPermutation)
 {
 	std::vector<std::vector<int>> neighbourhood;
-	for (int i = 1 ; i < vertex - 2; i++) //0;vertex-1;
+	for (int i = 1; i < vertex - 2; i++) //0;vertex-1;
 	{
-		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++) 
+		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++)
 		{
 			std::vector<int> move;
 			move.push_back(i);
@@ -368,7 +368,7 @@ int Matrix::pathCostTabu(std::vector<int> permutation)
 	int startingCityIndex = permutation.at(0);
 	int lastCityIndex = permutation.at(permutation.size() - 1);
 
-	for (int i = 0; i < permutation.size() -1; i++)
+	for (int i = 0; i < permutation.size() - 1; i++)
 	{
 		int currentCity = permutation.at(i);
 		int nextOnRoute = permutation.at(i + 1);
@@ -407,7 +407,7 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 	//}
 	//else if (selectionMethod == PROBABILITY)
 	//{
-		sizeVec = populationSize;
+	sizeVec = populationSize;
 	//}
 
 	//init and fill population
@@ -466,23 +466,19 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 		/*
 		else if (selectionMethod == TOP)
 		{
-
 			//top 50% of population will be crossed with each other (randomly chosen one of parents)
 			for (int i = 0; i < populationSize / 2; i++)
 			{
 				//rand indexes to cross
 				int idx1 = i;
 				int idx2 = rand() % populationSize / 2;
-
 				while (idx1 == idx2)
 				{
 					idx2 = rand() % populationSize / 2;
 				}
-
 				//cross parents
 				population[populationSize + i] = crossingHalfes(population[idx1], population[idx2]);
 			}
-
 			//top 25% of population will be mutated
 			for (int i = 0; i < populationSize / 4; i++)
 			{
@@ -559,7 +555,7 @@ std::vector<int> Matrix::mutationRandom(std::vector<int> parent, int levelsOfMut
 	for (int i = 0; i < levelsOfMutation; i++)
 	{
 		//rand elements
-		int idx1 = rand() % (parent.size()- 1 ) + 1 ;
+		int idx1 = rand() % (parent.size() - 1) + 1;
 		int idx2 = rand() % (parent.size() - 1) + 1;
 
 		while (idx1 == idx2)

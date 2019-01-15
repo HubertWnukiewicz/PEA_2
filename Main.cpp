@@ -64,9 +64,11 @@ void Mainmenu()
 		break;
 	case 3:
 		route=matrix.initTS(temptime, timer, 1);
-		cout << "Dystans: " << matrix.distance(route);
+		cout << "Dystans: " << matrix.distance(route) << endl;
+		cout << "Czas znalezienia najlepszego rozwiazania: " << matrix.getFound() << endl;
 		cout << "Trasa: " << endl;
 		matrix.printRoute(route);
+		matrix.resetAtributes();
 		cin.ignore(2);
 		Mainmenu();
 		break;
@@ -84,9 +86,11 @@ void Mainmenu()
 		break;
 	case 5:
 		route = matrix.InitSA(temptime, timer, a);
-		cout << "Dystans: " << matrix.distance(route);
+		cout << "Dystans: " << matrix.distance(route) << endl;
+		cout << "Czas znalezienia najlepszego rozwiazania: " << matrix.getFound() << endl;
 		cout << "Trasa: " << endl;
 		matrix.printRoute(route);
+		matrix.resetAtributes();
 		cin.ignore(2);
 		Mainmenu();
 		break;
@@ -137,14 +141,43 @@ void Opcja1()
 int main()
 {
 	srand(time(nullptr));
-	Timer timer;
+	//Timer timer;
 	//PEA 2
 	matrix.ReadFromFile("ftv47.atsp"); //120
-	//Mainmenu();
-	vector<int> w2;
-	w2=matrix.initGeneticAlgorithm(50000, 200, 0.8, 0.01, 30, timer);
-	int value = matrix.distance(w2);
-	matrix.printRoute(w2);
-	cout << "Wartosc " << value << endl;
+	Mainmenu();
+	/*
+	int tab1[10],tab2[10],tab3[10];
+	vector<int> w1[10], w2[10],w3[10];
+
+	for (int i = 0; i < 10; i++)
+	{
+		w1[i]=matrix.InitSA(15, timer, 0.99);
+		tab1[i] = matrix.distance(w1[i]);
+		matrix.resetAtributes();
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		w2[i] = matrix.initTS(15, timer, 0.99);
+		tab2[i] = matrix.distance(w2[i]);
+		matrix.resetAtributes();
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		w3[i] = matrix.initGeneticAlgorithm(500, 200, 0.8, 0.01, 30, timer);
+		tab3[i] = matrix.distance(w3[i]);
+		matrix.resetAtributes();
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		cout << "SA[" << i << "] = "<<tab1[i] << endl;
+		matrix.printRoute(w1[i]);
+		cout << endl;
+		cout << "TS[" << i << "] = " << tab2[i] << endl;
+		matrix.printRoute(w2[i]);
+		cout << endl;
+		cout << "GA[" << i << "] = " << tab3[i] << endl;
+		matrix.printRoute(w3[i]);
+		cout << endl;
+	}*/
 	cin.ignore(2);
 }
