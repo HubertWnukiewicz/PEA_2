@@ -6,12 +6,19 @@
 #include <iomanip>
 #include <fstream>
 #include <String>
+
 Matrix matrix;
 double temptime = 30;
 float a = 0.95;
 int nazwa=1;
 using namespace std;
 void Opcja1();
+void Opcja2();
+void Mainmenu2();
+//pea3
+int populationSize = 100;
+float cross = 0.8;
+float mutation = 0.01;
 
 string plik(int nazwa)
 {
@@ -138,46 +145,154 @@ void Opcja1()
 		break;
 	}
 }
+void Opcja2()
+{
+	system("CLS");
+	int i = 0;
+	cout << "---------------------------------" << endl;
+	cout << "WCZYTANIE PLIKU " << endl;
+	cout << "---------------------------------" << endl;
+	cout << "1.ftv47.atsp" << endl;
+	cout << "2.ftv170.atsp" << endl;
+	cout << "3.rbg403.atsp" << endl;
+	cin >> i;
+	switch (i)
+	{
+	case 1:
+		matrix.ReadFromFile("ftv47.atsp"); //120
+		nazwa = 1;
+		Mainmenu2();
+		break;
+	case 2:
+		matrix.ReadFromFile("ftv170.atsp");
+		nazwa = 2;
+		Mainmenu2();
+		break;
+	case 3:
+		matrix.ReadFromFile("rbg403.atsp");
+		nazwa = 3;
+		Mainmenu2();
+		break;
+	default:
+		cout << "Niepoprawny wybor, sprobuj ponownie" << endl;
+		cin.ignore(2);
+		system("CLS");
+		Opcja2();
+		break;
+	}
+}
+void Mainmenu2()
+{
+	Timer timer;
+	int value;
+	double tempA = 0.01;
+	float found;
+	vector<int> route;
+	system("CLS");
+	int i = 0;
+	cout << "---------------------------------" << endl;
+	cout << "Hubert Wnukiewicz projekt PEA 3" << endl;
+	cout << "---------------------------------" << endl;
+	cout << "Obecne wartosci: (czas: " << temptime << "s, wielkosc populacji: " << populationSize << ", wspolczynnik mutacji: " << mutation << ", wspolczynnik krzyzowania" << cross << ",obecny plik: " << plik(nazwa) << "  )." << endl;
+	cout << "---------------------------------" << endl;
+	cout << "1.Wczytaj graf z pliku" << endl;
+	cout << "2.Ustaw kryterium stopu" << endl;
+	cout << "3. Ustaw wielkosc populacji poczatkowej" << endl;
+	cout << "4. Ustaw wspolczynnik mutacji" << endl;
+	cout << "5. Ustaw wspolczynnik krzyzowania" << endl;
+	cout << "6. Uruchom algorytm genetyczny" << endl;
+	cout << "Twoj wybor: ";
+	cin >> i;
+	switch (i)
+	{
+	case 1:
+		Opcja2();
+		break;
+	case 2:
+		cout << "Podaj kryterium stopu " << endl;
+		cin >> found;
+		if (found > 0)
+		{
+			temptime = found;
+		}
+		else
+			cout << "Niepoprawna wartosc" << endl;
+		cin.ignore(2);
+		Mainmenu2();
+		break;
+	case 3:
+		cout << "Nowa wartosc to: " << endl;
+		cin >> populationSize;
+		cin.ignore(2);
+		Mainmenu2();
+		break;
+	case 4:
+		cout << "Podaj wspolczynnik mutacji " << endl;
+		cin >> tempA;
+		if (tempA < 1 && tempA > 0)
+		{
+			mutation = tempA;
+		}
+		else
+			cout << "Niepoprawna wartosc" << endl;
+		cin.ignore(2);
+		Mainmenu2();
+		break;
+	case 5:
+		cout << "Podaj wspolczynnik krzyzowania " << endl;
+		cin >> tempA;
+		if (tempA < 1 && tempA > 0)
+		{
+			cross = tempA;
+		}
+		else
+			cout << "Niepoprawna wartosc" << endl;
+		cin.ignore(2);
+		Mainmenu2();
+		break;
+	case 6:
+		route = matrix.initGeneticAlgorithm(populationSize, 200, cross, a, temptime, timer);
+		value = matrix.distance(route);
+		cout << "Dystans: " << value << endl;
+		matrix.printRoute(route);
+		cin.ignore(2);
+		Mainmenu2();
+	default:
+		cout << "Niepoprawny wybor, sprobuj ponownie" << endl;
+		cin.ignore(2);
+		system("CLS");
+		Mainmenu2();
+		break;
+	}
+}
 int main()
 {
+	//Matrix matrix;
 	srand(time(nullptr));
 	//Timer timer;
 	//PEA 2
+	int x = 1;
 	matrix.ReadFromFile("ftv47.atsp"); //120
-	Mainmenu();
-	/*
-	int tab1[10],tab2[10],tab3[10];
-	vector<int> w1[10], w2[10],w3[10];
+	cout << "Hubert Wnukiewicz PEA projekt 2 & 3" << endl;
+	cout << "-------------------------------------" << endl;
+	cout << "1. Projekt 2" << endl;
+	cout << "2. Projetk 3" << endl;
+	cout << "-------------------------------------" << endl;
+	cin >> x;
+	switch (x)
+	{
+	case 1:
+		Mainmenu();
+		break;
+	case 2:
+		Mainmenu2();
+		break;
+	default:
+		cout << "Niepoprawny wybor, sprobuj ponownie" << endl;
+		cin.ignore(2);
+	}
 
-	for (int i = 0; i < 10; i++)
-	{
-		w1[i]=matrix.InitSA(15, timer, 0.99);
-		tab1[i] = matrix.distance(w1[i]);
-		matrix.resetAtributes();
-	}
-	for (int i = 0; i < 10; i++)
-	{
-		w2[i] = matrix.initTS(15, timer, 0.99);
-		tab2[i] = matrix.distance(w2[i]);
-		matrix.resetAtributes();
-	}
-	for (int i = 0; i < 10; i++)
-	{
-		w3[i] = matrix.initGeneticAlgorithm(500, 200, 0.8, 0.01, 30, timer);
-		tab3[i] = matrix.distance(w3[i]);
-		matrix.resetAtributes();
-	}
-	for (int i = 0; i < 10; i++)
-	{
-		cout << "SA[" << i << "] = "<<tab1[i] << endl;
-		matrix.printRoute(w1[i]);
-		cout << endl;
-		cout << "TS[" << i << "] = " << tab2[i] << endl;
-		matrix.printRoute(w2[i]);
-		cout << endl;
-		cout << "GA[" << i << "] = " << tab3[i] << endl;
-		matrix.printRoute(w3[i]);
-		cout << endl;
-	}*/
+	//Mainmenu();
+	
 	cin.ignore(2);
 }

@@ -30,8 +30,7 @@ public:
 	void resetAtributes();
 	void printRoute(std::vector<int> route);
 	std::vector<int> setNeighboorType(std::vector<int> route, int type);
-	std::vector<int> getInitialSolution();
-	std::vector<int> getRandomPermutationTabu();
+
 	std::vector<std::vector<int>> getNeighbourhood(std::vector<int> currentPermutation );
 	int pathCostTabu(std::vector<int> permutation);
 

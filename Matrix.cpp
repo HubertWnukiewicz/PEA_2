@@ -72,12 +72,12 @@ void Matrix::simulatedAnnealing(std::vector<int> cycle, std::vector<int>& minimu
 {
 	Timer timer;
 	minimumRoute = cycle;
-	const int tempLength = cycle.size()*(cycle.size() - 1) / 2;
+	const int tempLength = 100*cycle.size()*(cycle.size() - 1) / 2;
 	double temperature = tempStart;
 	this->minSolution = distance(cycle);
 	timer.start();
 
-	while (timer.stop() < stoptime /*&& temperature>tempMin*/)
+	while (timer.stop() < stoptime && temperature>tempMin)
 	{
 		std::cout << "czas: " << timer.stop() << std::endl;
 		for (int i = 0; i < tempLength; i++)
@@ -120,11 +120,12 @@ std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 	{
 		cycle[i] = i;
 	}
+	double minTemp = 0.00000000000000001;
 	double temp = calcTemperature(1000);
 	cout << "Temperatura: " << temp << endl;
 	timer.reset();
 	timer.start();
-	this->simulatedAnnealing(cycle, minimumRoute, temp, 0.000001, time, a);
+	this->simulatedAnnealing(cycle, minimumRoute, temp, minTemp, time, a);
 	timer.stop();
 	return minimumRoute;
 }
@@ -132,7 +133,7 @@ std::vector<int> Matrix::InitSA(double time, Timer & timer, float a)
 double Matrix::calcTemperature(int size)
 {
 	double temp = 0.0;
-std:vector<int> route = randomRoute();
+	std:vector<int> route = randomRoute();
 	for (int i = 0; i < size; i++)
 	{
 		temp += abs(distance(route) - distance(getTransformation(route)));
@@ -298,52 +299,10 @@ std::vector<int> Matrix::setNeighboorType(std::vector<int> route, int type)
 	return route;
 }
 
-std::vector<int> Matrix::getInitialSolution()
-{
-	int startNode = 0;
-
-	std::vector<int> initialSolution;
-	initialSolution.push_back(startNode);
-	for (int i = 0; i < vertex - 1; i++)
-	{
-		int bestNeighbourIndex = -1;
-		int bestNeighbourCost = INT_MAX;
-
-		for (int i = 0; i < vertex; i++)
-		{
-			if (i != startNode && data[startNode][i] < bestNeighbourCost &&
-				std::find(initialSolution.begin(), initialSolution.end(), i) == initialSolution.end())
-			{
-				bestNeighbourIndex = i;
-				bestNeighbourCost = data[startNode][i];
-			}
-		}
-		initialSolution.push_back(bestNeighbourIndex);
-		startNode = bestNeighbourIndex;
-	}
-
-	//for (int i = 0; i < vertex; i++) 
-		//initialSolution.at(i) += 1;
-
-	return initialSolution;
-}
-
-std::vector<int> Matrix::getRandomPermutationTabu()
-{
-	std::vector<int> randomPermutation;
-	for (int i = 0; i < vertex; ++i)
-		randomPermutation.push_back(i);
-	std::random_shuffle(randomPermutation.begin(), randomPermutation.end());
-
-	//for (int i = 0; i < vertex; i++) 
-		//randomPermutation.at(i) += 1;
-	return randomPermutation;
-}
-
 std::vector<std::vector<int>> Matrix::getNeighbourhood(std::vector<int> currentPermutation)
 {
 	std::vector<std::vector<int>> neighbourhood;
-	for (int i = 1; i < vertex - 2; i++) //0;vertex-1;
+	for (int i = 1; i < vertex - 2; i++) 
 	{
 		for (int currentSwap = i + 1; currentSwap < vertex; currentSwap++)
 		{
@@ -360,24 +319,6 @@ std::vector<std::vector<int>> Matrix::getNeighbourhood(std::vector<int> currentP
 	}
 
 	return neighbourhood;
-}
-
-int Matrix::pathCostTabu(std::vector<int> permutation)
-{
-	int totalCost = 0;
-	int startingCityIndex = permutation.at(0);
-	int lastCityIndex = permutation.at(permutation.size() - 1);
-
-	for (int i = 0; i < permutation.size() - 1; i++)
-	{
-		int currentCity = permutation.at(i);
-		int nextOnRoute = permutation.at(i + 1);
-
-		totalCost += data[currentCity][nextOnRoute];
-	}
-	totalCost += data[lastCityIndex][startingCityIndex];
-
-	return totalCost;
 }
 
 std::vector<int> Matrix::initGeneticAlgorithm(int populationSize, int generations, double crossingProbability, double mutationProbability, double stopTime, Timer & counter)
@@ -399,19 +340,8 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 	Timer timer;
 	timer.start();
 
-	//calculate size of population vector
-	int sizeVec = 0;
-	//if (selectionMethod == TOP)
-	//{
-		//sizeVec = populationSize + populationSize / 2 + populationSize / 4;
-	//}
-	//else if (selectionMethod == PROBABILITY)
-	//{
-	sizeVec = populationSize;
-	//}
-
 	//init and fill population
-	std::vector<std::vector<int>> population(sizeVec);
+	std::vector<std::vector<int>> population(populationSize);
 	for (int i = 0; i < populationSize; i++)
 	{
 		population[i] = randomRoute();
@@ -427,10 +357,9 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 	});
 
 	//repeat 'generations' times or finish after stopTime
-	while (timer.stop() < stopTime && generation < generations)
+	while (timer.stop() < stopTime  /* && generation < generations*/)
 	{
 		std::cout << "Timer: " << timer.stop() << endl;
-		//if (selectionMethod == PROBABILITY)
 		{
 			//every cycle in population has some probability to cross and some to mutate
 			for (int i = 0; i < populationSize; i++)
@@ -458,35 +387,10 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 				{
 					//mutate and add child to population
 					//mutate up to ~0 - 10% of vertices (5% might be swaped with another 5% so 10% will change place)
-					//todo - add switching methods of mutation if more than 1
 					population.push_back(mutationRandom(population[i], population[i].size()*0.05));
 				}
 			}
 		}
-		/*
-		else if (selectionMethod == TOP)
-		{
-			//top 50% of population will be crossed with each other (randomly chosen one of parents)
-			for (int i = 0; i < populationSize / 2; i++)
-			{
-				//rand indexes to cross
-				int idx1 = i;
-				int idx2 = rand() % populationSize / 2;
-				while (idx1 == idx2)
-				{
-					idx2 = rand() % populationSize / 2;
-				}
-				//cross parents
-				population[populationSize + i] = crossingHalfes(population[idx1], population[idx2]);
-			}
-			//top 25% of population will be mutated
-			for (int i = 0; i < populationSize / 4; i++)
-			{
-				//mutate up to ~0 - 10% of vertices (5% might be swaped with another 5% so 10% will change place)
-				//todo - add switching methods of mutation if more than 1
-				population[populationSize + populationSize / 2 + i] = mutationRandom(population[i], population[i].size()*0.05);
-			}
-		}*/
 
 		//sort again but this time whole population vector
 		//( in TOP selection method ! ) so better results from mutation and crossing will move to first (100%) part of population 
@@ -496,10 +400,8 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 			return (distance(vec1) < distance(vec2));
 		});
 
-		//if (selectionMethod == PROBABILITY) 
 		population.resize(populationSize);
 
-		//if the best known cycle is worse then swap
 		if (distance(minCycle) > distance(population[0]))
 		{
 			minCycle = population[0];
@@ -507,7 +409,6 @@ std::vector<int> Matrix::geneticAlgorithm(int populationSize, int generations, d
 		//go to next generation
 		generation++;
 	}
-
 	return minCycle;
 }
 
